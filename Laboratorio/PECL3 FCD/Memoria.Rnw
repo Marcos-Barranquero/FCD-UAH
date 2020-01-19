@@ -1,0 +1,403 @@
+\documentclass[a4paper]{article}
+
+\usepackage[latin1]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[spanish]{babel}
+\usepackage{lmodern}
+\usepackage{Sweave}
+
+\title{PECL3 - Fundamentos de la ciencia de datos}
+\author{Marcos Barranquero \and Adrián Montesinos \and Eduardo Graván}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE, cache=TRUE}
+
+\maketitle
+
+
+\section{Apartado 1 - Análisis de clasificación supervisada}
+
+\subsection{Introducción}
+En este apartado vemos dos ejercicios de clasificación supervisada realizados en clase, donde resolvemos uno con árboles de decisión de Hunt y otro mediante regresión lineal.
+
+\subsection{Árboles de decisión}
+
+Se pide, para las siguientes calificaciones de la tabla \ref{tab:tabla-calificaciones}, obtener una función de clasificación, utilizando como medida de impureza el Gini a la hora de realizarla.
+
+\begin{table}[!htbp]
+\centering
+\caption{Muestra de calificaciones: }
+\label{tab:tabla-calificaciones}
+\begin{tabular}{llll}
+A & A & B & Ap \\
+A & B & D & Ss \\
+D & D & C & Ss \\
+D & D & A & Ss \\
+B & C & B & Ss \\
+C & B & B & Ap \\
+B & B & A & Ap \\
+C & D & C & Ss \\
+B & A & C & Ss
+\end{tabular}
+\end{table}
+
+Para realizar el análisis, el primer paso es cargar las librerías de \textit{rpart} y \textit{tree}. 
+
+<<>>==
+# Cargamos las librerias:
+library('rpart')
+library('tree')
+@
+
+Tras esto, leemos el fichero de texto con la información de las calificaciones, y las insertamos en un \textit{dataframe}:
+<<>>==
+# Trabajo con datos y la libreria rpart
+calificaciones <- read.table("./Parte 1/calificaciones.txt")
+muestra <- data.frame(calificaciones)
+@
+
+Ahora podemos clasificar utilizando rpart o utilizando rtree. 
+
+Para rpart:
+
+<<echo=true>>= 
+clasificacion <- rpart(Calificacion~., data=muestra, method="class", minsplit=1)
+print(clasificacion)
+@
+
+
+Observamos la estructura de los nodos en la impresión por pantalla que realiza, y vemos que consigue realizar la clasificación.
+
+Para tree:
+
+<<echo=true>>= 
+calificaciontree <- tree(Calificacion~., data=muestra, mincut=1, minsize=2)
+print(calificaciontree)
+@
+
+Observamos que para ambas librerías obtenemos el mismo resultado.
+Consultando la documentación, leemos que ambas librerías emplean por defecto el Gini para el cálculo de impureza, por lo que no es necesario
+modificar la llamada. 
+
+\subsection{Regresión lineal}
+
+Se pide, para los siguientes planetas y radios mostrados en la tabla \ref{tab:tabla-planetas}, realizar un análisis de regresión lineal.
+
+\begin{table}[!htbp]
+\centering
+\caption{Planetas con radio y densidad}
+\label{tab:tabla-planetas}
+\begin{tabular}{lll}
+Mercurio & 2.4 & 5.4 \\
+Venus    & 6.1 & 5.2 \\
+Tierra   & 6.4 & 5.5 \\
+Marte    & 3.4 & 3.9
+\end{tabular}
+\end{table}
+
+En esta ocasión no tenemos que importar ninguna librería ya que podemos realizar el análsis con las librerías que ya trae por defecto R.
+Tan solo debemos cargar los datos: 
+<<echo=true>>= 
+# Cargamos los datos
+planetas <- read.table("./Parte 1/planetas.txt")
+@
+
+Y realizar el análisis, especificando que queremos la realación entre la densidad (D) y el radio (R), y obteniendo los coeficientes asociados:
+<<echo=true>>= 
+# Hacemos el estudio de la regresion
+regresion = lm(D~R, data=planetas)
+print(regresion)
+@
+
+\section{Apartado 2 - Ejercicios de clasificación}
+
+\subsection{Ejercicio - Clasificación de vehículos}
+Se pide, dada la siguiente tabla  \ref{tab:tabla-vehiculos},de características de vehículos , realizar una función clasificadora mediante áboles de decisión.
+
+\begin{table}[!htbp]
+\centering
+\caption{Vehículos y características}
+\label{tab:tabla-vehiculos}
+\begin{tabular}{llll}
+B & 4 & 5 & Coche     \\
+A & 2 & 2 & Moto      \\
+N & 2 & 1 & Bicicleta \\
+B & 6 & 4 & Camión    \\
+B & 4 & 6 & Coche     \\
+B & 4 & 4 & Coche     \\
+N & 2 & 2 & Bicicleta \\
+B & 2 & 1 & Moto      \\
+B & 6 & 2 & Camión    \\
+N & 2 & 1 & Bicicleta
+\end{tabular}
+\end{table}
+
+Para resolverlo, empleamos una aproximación similar al ejercicio anterior de clasificación:
+<<echo=true>>= 
+# Leemos el archivo de texto y lo sacamos por pantalla
+datos <- read.table("./Parte 2/datos21.txt")
+
+# Convertimos los datos leidos en un data frame
+muestra <- data.frame(datos)
+
+# Clasificamos usando la libreria rpart, que usa el metodo Gini por defecto
+clasificacion <- rpart(TipoVehiculo~., data=muestra, method="class", minsplit=1)
+print(clasificacion)
+@
+
+Además, hemos añadido un plot para poder visualizar el árbol:
+
+<<echo=true>>= 
+# Pintamos el arbol de clasificacion para este ejercicio
+plot(clasificacion, uniform=TRUE, main="Arbol de clasificacion para los vehiculos") 
+text(clasificacion, use.n=TRUE, all=TRUE, cex=.7, fancy=TRUE, fwidth=0.5, fheight=0.7)
+@
+
+
+Obteniendo el siguiente gráfico:
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=200px,keepaspectratio]{./arbolitos.png}
+  \caption{Árbol de decisión}
+  \label{fig:arbol}
+\end{figure}
+
+
+\subsection{Ejercicio - Regresión}
+Se pide, para las siguientes muestras, realizar un análisis de regresión.
+
+
+
+\subsubsection{Muestra 1}
+Se tiene la siguiente muestra de pares de datos:
+\begin{table}[!htbp]
+\centering
+\caption{Muestra 1}
+\label{tab:tabla-numeros-1}
+\begin{tabular}{ll}
+10 & 8.04  \\
+8  & 6.95  \\
+13 & 7.58  \\
+9  & 8.81  \\
+11 & 8.33  \\
+14 & 9.96  \\
+6  & 7.24  \\
+4  & 4.26  \\
+12 & 10.84 \\
+7  & 4.82  \\
+5  & 5.68 
+\end{tabular}
+\end{table}
+
+Se resuelve así:
+<<echo=true>>= 
+# Cargamos los datos y los dividimos en 4 muestras
+datos <- read.table("./Parte 2/datos22.txt", header=TRUE) 
+muestras <- split(datos, factor(sort(rank(row.names(datos))%%4))) 
+
+cat("Muestra 1: \n\n")
+regresion1 = lm(Y~X, data=muestras[[1]])
+print(regresion1)
+@
+
+\subsubsection{Muestra 2}
+Se tiene la siguiente muestra de pares de datos:
+\begin{table}[!htbp]
+\centering
+\caption{Muestra 2}
+\label{tab:tabla-numeros-2}
+\begin{tabular}{ll}
+10 & 9.14 \\
+8  & 8.14 \\
+13 & 8.74 \\
+9  & 8.77 \\
+11 & 9.26 \\
+14 & 8.1  \\
+6  & 6.13 \\
+4  & 3.1  \\
+12 & 9.13 \\
+7  & 7.26 \\
+5  & 5.74
+\end{tabular}
+\end{table}
+
+Se resuelve así:
+<<echo=true>>= 
+# Cargamos los datos y los dividimos en 4 muestras
+datos <- read.table("./Parte 2/datos22.txt", header=TRUE) 
+muestras <- split(datos, factor(sort(rank(row.names(datos))%%4))) 
+
+cat("\nMuestra 2: \n\n")
+regresion2 = lm(Y~X, data=muestras[[2]])
+print(regresion2)
+@
+
+\subsubsection{Muestra 3}
+Se tiene la siguiente muestra de pares de datos:
+\begin{table}[!htbp]
+\centering
+\caption{Muestra 3}
+\label{tab:tabla-numeros-3}
+\begin{tabular}{ll}
+10 & 7.46  \\
+8  & 6.77  \\
+13 & 12.74 \\
+9  & 7.11  \\
+11 & 7.81  \\
+14 & 8.84  \\
+6  & 6.08  \\
+4  & 5.39  \\
+12 & 8.15  \\
+7  & 6.42  \\
+5  & 5.73 
+\end{tabular}
+\end{table}
+
+Se resuelve así:
+<<echo=true>>= 
+# Cargamos los datos y los dividimos en 4 muestras
+datos <- read.table("./Parte 2/datos22.txt", header=TRUE) 
+muestras <- split(datos, factor(sort(rank(row.names(datos))%%4))) 
+
+cat("\nMuestra 3: \n\n")
+regresion3 = lm(Y~X, data=muestras[[3]])
+print(regresion3)
+@
+
+\subsubsection{Muestra 3}
+Se tiene la siguiente muestra de pares de datos:
+\begin{table}[!htbp]
+\centering
+\caption{Muestra 4}
+\label{tab:tabla-numeros-4}
+\begin{tabular}{ll}
+8  & 6.58 \\
+8  & 5.76 \\
+8  & 7.71 \\
+8  & 8.84 \\
+8  & 8.47 \\
+8  & 7.04 \\
+8  & 5.25 \\
+19 & 12.5 \\
+8  & 5.56 \\
+8  & 7.91 \\
+8  & 6.89
+\end{tabular}
+\end{table}
+
+Se resuelve así:
+<<echo=true>>= 
+# Cargamos los datos y los dividimos en 4 muestras
+datos <- read.table("./Parte 2/datos22.txt", header=TRUE) 
+muestras <- split(datos, factor(sort(rank(row.names(datos))%%4))) 
+
+cat("\nMuestra 4: \n\n")
+regresion4 = lm(Y~X, data=muestras[[4]])
+print(regresion4)
+@
+
+Finalmente, hemos realizado la gráfica para poder visualizar la regresión:
+<<echo=true>>= 
+# Pintamos las graficas resultantes de las regresiones
+par(mfrow=c(2,2))
+plot(muestras[[1]]$X, muestras[[1]]$Y, main="Muestra 1", xlab="x", ylab="y")
+abline(regresion1, col="red")
+plot(muestras[[2]]$X, muestras[[2]]$Y, main="Muestra 2", xlab="x", ylab="y")
+abline(regresion2, col="red")
+plot(muestras[[3]]$X, muestras[[3]]$Y, main="Muestra 3", xlab="x", ylab="y")
+abline(regresion3, col="red")
+plot(muestras[[4]]$X, muestras[[4]]$Y, main="Muestra 4", xlab="x", ylab="y")
+abline(regresion4, col="red")
+mtext(expression(paste(bold("Comparativa de rectas de regresion de las muestras"))),
+         side = 3, line = -2, outer = TRUE)
+@
+
+Generando el siguiente gráfico:
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=200px,keepaspectratio]{./plotregresion.png}
+  \caption{Regresiones de las muestras}
+  \label{fig:regresiones}
+\end{figure}
+
+\clearpage
+\clearpage
+
+\subsection{Ejercicio propio}
+
+Para esta sección, se ha decidido realizar una clasificiación supervisada mediante Machine Learning. Hemos tomado el ejercicio de clasificación
+de las notas del primer apartado, ampliando la muestra. El ejercicio consiste en dividir la muestra en set de entrenamiento y set de prueba.
+Emplearemos el set de entrenamiento para entrenar un clasificador, y, una vez entrenado, le pasaremos el set de prueba para que realice la clasificación.
+Comprobando la matriz de confusión, el campo \textit{Accuracy} referencia la precisión y exactitud a la hora de clasificar adecuadamente el set de prueba.
+
+En primer lugar, debemos instalar los paquetes adecuados:
+
+\begin{verbatim}
+
+install.packages("rpart")
+install.packages("dplyr")
+install.packages("caret")
+install.packages("e1071") # Dependencia oculta de 'caret'
+
+\end{verbatim}
+
+Una vez los paquetes instalados y el directorio de trabajo establecido, importamos las librerías y leemos la muestra:
+
+<<echo=true>>= 
+# Cargamos librerías
+library('rpart')
+library('dplyr')
+library('caret')
+
+# Cargamos la muestra
+tablaNotas <- read.table(
+    "./Parte 2/notas23.txt",
+    col.names = c("Teoria1", "Teoria2", "Laboratorio", "Calificacion")
+)
+notas <- data.frame(tablaNotas)
+@
+
+Dividimos la muestra en set de entrenamiento y prueba. Usamos una seed fija en el generador de números aleatorios para que siempre generemos el mismo documento final.
+
+<<echo=true>>= 
+set.seed(3454)
+notas_entrenamiento <- sample_frac(notas, 0.7)
+notas_prueba <- setdiff(notas, notas_entrenamiento)
+@
+
+Entrenamos el clasificador y predecimos el set de prueba:
+
+<<echo=true>>= 
+# Entrenamos el clasificador.
+clasificacion <- rpart(Calificacion~.,
+                       data=notas_entrenamiento, method="class", minsplit=1)
+print(clasificacion)
+
+# Predecimos el set de prueba.
+prediccion <- predict(clasificacion,
+                      newdata=notas_prueba, type="class")
+@
+
+Finalmente, comprobamos la matriz de precisión, prestando atención al campo 'Accuracy':
+
+<<echo=true>>= 
+# Comprobamos la matriz de precisión: nos interesa el campo 'Accuracy'.
+confusion = confusionMatrix(table(prediccion, notas_prueba$Calificacion))
+print(confusion)
+@
+
+Observamos que obtenemos un valor de Accuracy de 1, es decir, ha conseguido clasificar todos los elementos del set de pruebas.
+
+\clearpage
+
+\section{Conclusiones}
+
+Mediante esta práctica hemos empleado herramientas que permiten clasificar elementos partiendo de una muestra. 
+Observamos que existe gran cantidad de soporte y paquetes por parte de la comunidad para realizar este tipo de análisis 
+de datos.
+Contemplamos también la facilidad de uso a la hora de realizar estos análisis, y la extensión y potencia de estos análisis.
+
+
+
+
+\end{document}

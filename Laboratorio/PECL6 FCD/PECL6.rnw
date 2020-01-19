@@ -1,0 +1,327 @@
+\documentclass[a4paper]{article}
+
+\usepackage[latin1]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[spanish]{babel}
+\usepackage{lmodern}
+\usepackage{Sweave}
+
+\title{PECL 6 - Fundamentos de la Ciencia de Datos \large Visualización de datos}
+\author{Marcos Barranquero \and Eduardo Graván \and Adrián Montesinos}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE, cache=TRUE}
+
+\maketitle
+
+\section{Introducción}
+
+En esta práctica no contamos con ejercicios guiados por el profesor, por lo que
+se ha dividido en dos partes propias. La primera estudia varios métodos y librerías
+de R que permiten visualizar los datos mediante diferentes gráficos y modelos. La 
+segunda es un estudio sobre la correctitud en la representación de los datos,
+la manipulación que podemos encontrar tras estos, y cómo corregirla.
+
+\section{Apartado 1 - Visualización de datos en R}
+En esta sección vamos a utilizar varias formas de visualizar datos en R.
+El conjunto de datos elegido para los ejemplos del estudio está conformado por información 
+sobre productos de supermercado, y se encuentra en el archivo \textit{Dataset.xlsx}.
+
+\subsection{ Diagrama de dispersión - ScatterPlot}
+El diagrama de dispersión nos permite visualizar la relación entre dos variables.
+La variable independiente es aquella que se emplea para medir. 
+Normalmente incrementa de forma sistemática, y va en el eje X.
+La variable dependiente es aquella variable medida en función de la independiente, y se representa en el eje Y.
+
+Para este ejemplo, pondremos como variable independiente el índice de MRP de los productos en relación a la visibilidad del producto.
+
+En primer lugar, cargaremos las librerías necesarias para leer los datos, y para realizar el diagrama de dispersión.
+También necesitamos cargar los datos:
+
+<<echo=true>>==
+library("readxl") # Libreria para leer archivos de excel
+library("ggplot2") # Libreria para hacer plots avanzados
+
+# Leemos los datos desde el excel
+datos <- read_excel("Dataset.xlsx")
+@
+
+\newpage
+Después, podemos dibujar el gráfico con la función \textit{geompoint}
+
+
+\begin{Verbatim}
+# Representamos los datos con un gráfico de dispersión
+print(ggplot(datos, aes(Item_Visibility, Item_MRP)) 
+    + geom_point(aes(color = Item_Type)) 
+    + scale_x_continuous("Visibilidad de los articulos",
+    breaks = seq(0,0.35,0.05))
+    + scale_y_continuous("MRP de los articulos",
+    breaks = seq(0,270,by = 30))
+    + theme_bw() + labs(title="Estudio de la relacion
+    entre variables con Scatterplot"))
+\end{Verbatim}
+
+Obteniendo el siguiente gráfico: 
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=350px,keepaspectratio]{./img/scatterplot.png}
+  \caption{Diagrama de dispersión}
+  \label{fig:diagdispersion}
+\end{figure}
+
+Ahora, queremos ampliar el diagrama, realizando varios diagramas de dispersión
+ en función de la categoría del artículo. Para ello, realizamos la misma llamada añadiendo
+ una línea adicional indicando que queremos que agrupe por la variable \textit{ItemType}: 
+
+ \begin{Verbatim}
+ # Representamos los datos separando en categorias con
+ # un gráfico de dispersión
+print(ggplot(datos, aes(Item_Visibility, Item_MRP)) 
+        + geom_point(aes(color = Item_Type))
+        + scale_x_continuous("Visibilidad de los articulos",
+        breaks = seq(0,0.35,0.05))
+        + scale_y_continuous("MRP de los articulos",
+        breaks = seq(0,270,by = 30))
+        + theme_bw() + labs(title="Estudio de la relacion
+        entre variables separando en categorias con Scatterplot") 
+        + facet_wrap( ~ Item_Type))
+\end{Verbatim}
+
+Y obtenemos el siguiente gráfico: 
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=300px,keepaspectratio]{./img/scatterplotcategorias.png}
+  \caption{Diagrama de dispersión por categorías}
+  \label{fig:diagdispersioncategorias}
+\end{figure}
+
+
+\subsection{ Diagrama de temperatura - Heat Map}
+
+Un mapa de temperatura o \textit{HeatMap} muestra la relacion entre dos o tres variables 
+usando la intensidad de colores en una imagen bidimensional. La intensidad del color actúa 
+como una tercera  dimensión. 
+
+Para el ejemplo, queremos relacionar categorías de productos con su \textit{outlet}, en función del MRP de los productos.
+Como ya se tienen cargados los datos y las librerías, no hace falta volver a cargarlos. 
+
+Volvemos a llamar a ggplot con la función \textit{geomRaster} para realizar el mapa de temperatura:
+
+\begin{Verbatim}
+# Representamos los datos con un Heat Map
+print(ggplot(datos, aes(Outlet_Identifier, Item_Type))
+        + geom_raster(aes(fill = Item_MRP))
+        + labs(title ="Heat Map",
+        x = "Identificador de outlet", y = "Tipo de articulo")
+        + scale_fill_continuous(name = "MRP"))
+\end{Verbatim}
+
+Y obtenemos el siguiente diagrama: 
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=350px,keepaspectratio]{./img/mapatemperatura.png}
+  \caption{Diagrama de temperatura}
+  \label{fig:diagtemperatura}
+\end{figure}
+
+Observamos que la intensidad del color define el MRP. 
+
+\newpage
+
+\subsection{ Diagrama de datos anómalos - Box Plot}
+
+Este diagrama es útil para visualizar la dispersión de los datos y detectar datos anómalos.
+Muestra 5 datos significativos:
+
+\begin{itemize}
+  \item El valor mínimo
+  \item El percentil 25
+  \item La mediana
+  \item El percentil 75
+  \item El valor máximo
+\end{itemize}
+
+Para el ejemplo, vamos a identificar datos anómalos en la cantidad de ventas de items, en función de su temporada o \textit{outlet}. 
+
+Para ello, ejecutamos el siguiente script haciendo uso de \textit{geomBoxplot}.
+ \begin{Verbatim}
+# Representamos los datos usando caja y bigotes, pudiendo verse los outliers
+print(ggplot(datos, aes(Outlet_Identifier, Item_Outlet_Sales)) 
+        + geom_boxplot(fill = "red")
+        + scale_y_continuous("Ventas de articulo", breaks= seq(0,15000, by=500)) 
+        + labs(title = "Datos anomalos con Box Plot",
+        x = "Identificador de articulo"))
+\end{Verbatim}
+
+Al ejecutarlo, obtenemos el siguiente gráfico:
+ \begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=350px,keepaspectratio]{./img/diaganomalos.png}
+  \caption{Diagrama de datos anómalos}
+  \label{fig:diaganomalos}
+\end{figure}
+
+\newpage
+
+Los puntos negros son \textit{outliers} o datos anómalos.
+Las barras negras parten del mínimo y llegan al máximo, mientras que los bloques rojos indican el percentil en el que se encuentran:
+
+ \begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=350px,keepaspectratio]{./img/anomalostexto.png}
+  \caption{Diagrama de datos anómalos}
+  \label{fig:diaganomalos}
+\end{figure}
+
+\newpage
+
+
+\section{Apartado 2 - Estudio de correctitud y representación de datos}
+
+Según la manera que elijamos de representar y visualizar los datos, podemos influenciar 
+la opinión y tergiversar lo que los datos representan y la información que transmiten. 
+
+Nuestro objetivo debe ser transmitir la información representada de manera neutra y ética,
+sin modificar el mensaje que los datos transmiten.
+
+Para llevar a cabo esto, debemos tener los siguientes criterios en cuenta:
+
+\begin{itemize}
+  \item Nuestro gráfico debe contener el mínimo número de elementos gráficos 
+  para representar la información que queremos transmitir. 
+  \item Que la línea base comience en 0 y los ejes tengan nombres y valores.
+  \item Buscaremos que tenga una correspondencia exacta con la información textual, es decir,
+  que no tergiverse la información.
+  \item En matera de diseño, buscaremos evitar colores llamativos y estilos innecesarios, que
+  entorpezcan el envío de información.
+  \item En relación a los outliers, si deforman mucho el gráfico, podemos recortar la manera de
+  representarlos para que no sesguen el resto de elementos. 
+  \item Los valores negativos tienen preferencia para representarse en vertical.
+  \item Para múltiples datos, queremos evitar contrastes llamativos y no incluir más de 4 o 5 categorías,
+  para no crear un gráfico demasiado confuso.
+  \item Los gráficos con ejes deben de ser limpios y comprensibles, no deben mostrarse como gráficos \textit{spaggueti}.
+\end{itemize}
+
+A continuación, veremos varios ejemplos de gráficos que no se adecuan a la realidad y se saltan uno o varios de estos criterios,
+y como se podrían corregir.
+
+\newpage
+
+\subsection{Datos negativos e inversión del gráfico}
+
+En la figura  ~\ref{fig:luzmal} podemos observar una representación de la variación del precio de la luz. Encontramos varios errores:
+\begin{itemize}
+  \item En primer lugar, la variación puede ser menor o mayor, pero nunca puede ser negativa.
+  \item En segundo lugar, observamos que las barras del eje x no son congruentes: hasta cierto punto muestran
+  la varaición por años, y luego pasan a mostrarla por meses. 
+\end{itemize}
+
+Si corregimos estos fallos, obtenemos un gráfico bastante diferente, mostrado en la figura ~\ref{fig:luzbien}.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=300px,keepaspectratio]{./img/luzmal.jpg}
+  \caption{Gráfico erróneo de variación del precio de la luz}
+  \label{fig:luzmal}
+\end{figure}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=300px,keepaspectratio]{./img/luzbien.png}
+  \caption{Gráfico correcto de variación del precio de la luz}
+  \label{fig:luzbien}
+\end{figure}
+
+Otro gráfico errático que hace uso de invertir los ejes es el mostrado a la izquierda en la figura ~\ref{fig:pistolas}.
+Este intento de manipulación muestra el gráfico al revés para causar la impresión de que el número de víctimas ha subido, 
+en lugar de disminuir. A la derecha, podemos ver el gráfico corregido. 
+Cabría resaltar también que años contabilizados en el eje x no están del todo claros.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=300px,keepaspectratio]{./img/pistolas.jpg}
+  \caption{Gráfico incorrecto y corregido del número de muertes por armas en EEUU.}
+  \label{fig:pistolas}
+\end{figure}
+
+\newpage
+
+\subsection{Ejes cortados}
+
+En la figura ~\ref{fig:paromal}, mostrada por RTVE en un noticiero, podemos hallar los siguientes errores:
+\begin{itemize}
+  \item El eje y no comienza en 0 y no contiene ninguna linea de escala que permita discernir los valores de dicho eje. 
+  \item El eje x tan solo muestra dos elementos, por lo que se encuentra limitado a un dominio muy bajo que resulta insuficiente
+  para poder extraer conclusiones. 
+\end{itemize}
+
+Podemos ver una versión corregida en la figura ~\ref{fig:parobien}, donde ampliamos el dominio del eje x,
+ establecemos en 0 el comienzo del eje y, y podemos ver lineas de escala.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=300px,keepaspectratio]{./img/paromal.jpg}
+  \caption{Gráfico incorrecto del paro de 2013 en España}
+  \label{fig:paromal}
+\end{figure}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=300px,keepaspectratio]{./img/parobien.png}
+  \caption{Gráfico correcto del paro de 2013 en España}
+  \label{fig:parobien}
+\end{figure}
+
+\subsection{Gráficos 3D}
+Los gráficos circulares son una pésima herramienta de comunicación de información.
+En la figura ~\ref{fig:ventaiphones} observamos los siguientes errores:
+\begin{itemize}
+  \item El gráfico se encuentra rotado y girado hacia el público, de modo que produce la sensación de
+   que la porción de Apple es mucho más grande de lo que en realidad es. 
+  \item El sector de "Otros" se encuentra en posición opuestl de Apple, haciendo que, con la distorsión por la rotación,
+  parezca más pequeño de lo que en realidad es.
+\end{itemize}
+
+Si empleamos un gráfico de barras, podemos observar que a Apple no le iba tan bien como quisieron hacer ver allá por el 2008:
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=300px,keepaspectratio]{./img/apple.png}
+  \caption{Gráficos de ventas de Apple}
+  \label{fig:ventaiphones}
+\end{figure}
+
+\newpage
+
+\subsection{Gráficos de área}
+
+Un gráfico de área es un gráfico de líneas en el que el área entre la línea y el eje aparece sombreada con un color. 
+Estos gráficos normalmente se usan para representar los totales acumulados a lo largo del tiempo y son la forma
+convencional de visualizar líneas apiladas. Sin embargo, también se pueden utilizar para comunicar un mensaje que
+no se corresponda con la realidad. 
+
+En el gráfico de la izquierda de la figura ~\ref{fig:crecimientoeconomico} vemos un gráfico de líneas apilado.
+En este, da la impresión de que el crecimiento económico de España es acorde al de otros países europeos.
+Sin embargo, la realidad es que no ha cambiado: a lo largo del eje x, el área ha sido la misma. Si lo representamos
+con un gráfico de líneas como el que se muestra a la derecha, podemos visualizarlo.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=400px,keepaspectratio]{./img/areaeconomica.png}
+  \caption{Gráficos de crecimiento económico}
+  \label{fig:crecimientoeconomico}
+\end{figure}
+
+\subsection{Conclusiones}
+
+La visualización de datos es una parte fundamental en todos los estudios de análisis de datos.
+Apoyándose en la visualización, el analista va descubriendo los secretos enterrados en los datos.
+Al desarrollar gráficos y formas de visualizar dichos datos, debemos aproximarnos con cautela: es fácil
+cometer estos errores y tergiversar los resultados en busca de una opinión o idea que no está reflejada en 
+los propios datos originales. 
+
+
+\end{document}

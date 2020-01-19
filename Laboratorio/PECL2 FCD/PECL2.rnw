@@ -1,0 +1,194 @@
+\documentclass[a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{Sweave}
+
+\title{PECL2 - Fundamentos de la ciencia de datos}
+\author{Marcos Barranquero \and Adrián Montesinos \and Eduardo Graván}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE, cache=TRUE}
+
+\maketitle
+
+\section{Apartado 1 - Análisis de asociación con la muestra de clase}
+
+\subsection{Introducción}
+
+En este apartado realizamos un ejercicio en clase de analisis de asociación de datos en R con el algoritmo apriori.
+Para esto empleamos la misma muestra que se ha empleado en clase, sobre cestas de la compra.
+
+\subsection{Procedimiento}
+
+Primero, cargamos librería \emph{arules} que contiene algoritmo apriori.
+
+<<>>=
+library("arules")
+@
+
+Procedemos ahora a cargar la matriz de asociaciones, etiquetada con sus cabeceras.
+
+<<>>=
+matriz_datos <- Matrix(
+    c(1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,1,0,1,1,0,1,1,0,0,0,0,0,0,1,0),
+    6, 5, byrow=T, dimnames=list(
+        c("suceso1","suceso2","suceso3","suceso4","suceso5","suceso6"),
+        c("Pan","Agua","Cafe","Leche","Naranjas")),
+    sparse=T)
+@
+
+Antes de poder emplear el algoritmo apriori, tenemos que convertir la matriz a un objecto de transacciones
+a través de una matriz dispersa.
+
+<<>>=
+muestra <- as(matriz_datos,"nsparseMatrix")
+transpuestaMatriz <- t(muestra)
+transacciones <- as(transpuestaMatriz, "transactions")
+@
+
+Aplicamos ahora el algoritmo apriori con $s \geq 50\%$ y $c \geq 80\%$, y mostramos el resultado por pantalla.
+
+<<>>=
+asociaciones <- apriori(transacciones, parameter=list(support=0.5, confidence=0.8))
+inspect(asociaciones)
+@
+
+Podemos así ver qué asociaciones cumplen con nuestro criterio.
+
+\section{Apartado 2.1 - Análisis de asociación con distinta muestra}
+
+\subsection{Introducción}
+
+En este apartado realizamos los mismos pasos para el uso de apriori con una muestra distinta dada,
+esta vez sobre ventas de extras en coches.
+
+\subsection{Procedimiento}
+
+De nuevo, cargamos la librería \emph{arules}.
+
+<<>>=
+library("arules") # Libreria arules
+@
+
+Construimos la matriz de asociaciones. Esta vez, la cargamos de un archivo usando la función
+read.transactions(), parte de \emph{arules}, para cargar los datos a partir de una lista de extras vendidos.
+
+<<>>=
+datos <- read.transactions("datos.txt", sep=" ")
+print(as(datos, "ngCMatrix"))
+@
+
+Realizamos ahora el algoritmo apriori para obtener asociaciones, esta vez con $s \geq 40\%$ y $c \geq 90\%$.
+
+<<>>=
+soporte <- apriori(datos, parameter=list(support=0.4, confidence=0.9))
+inspect(soporte)
+@
+
+Obtenemos así las asociaciones que cumplen nuestro criterio.
+
+\section{Apartado 2.2 - Ejercicio de clase modificado}
+
+\subsection{Introducción}
+
+Finalmente, realizamos de nuevo el procedimiento original, pero aplicando los cambios
+que hemos visto convenientes. Hemos tomado el punto de vista de una tienda
+de servicios por cable que desea estudiar las asociaciones entre las ventas de sus servicios
+para poder elaborar paquetes de oferta. Los servicios en concreto son:
+
+\begin{itemize}
+\item Línea móvil
+\item Línea fija
+\item ADSL
+\item Fibra
+\item Televisión
+\item Películas
+\item Fútbol
+\end{itemize}
+
+Puesto que no tenemos los datos de estas compras, para realizar el ejercicio
+generaremos al azar una muestra de compras en un csv.
+Después, la estudiaremos con el algoritmo apriori.
+
+\subsection{Procedimiento}
+
+De nuevo, importamos \emph{arules}.
+
+<<>>=
+library(arules)
+@
+
+Para generar los datos, creamos una función encargada de generar datos de muestra
+aleatorios y guardarlos en un csv en la ruta dada.
+Esto nos servirá para usar usar distintas muestras.
+
+<<>>=
+# nombre_archivo: nombre del archivo .CSV guardado
+# lista_articulos: posibles servicios de la tienda
+# tamano_muestra: nº de filas a generar
+generar_datos <- function(nombre_archivo, lista_articulos, tamano_muestra)
+{
+    tamano_lista_articulos <- length(lista_articulos)
+
+    # Creamos tabla de la muestra
+    muestra <- matrix(
+        sample(0:1, length(tamano_muestra) * tamano_lista_articulos, replace=TRUE),
+        tamano_muestra,
+        tamano_lista_articulos)
+
+    # Escribimos en el csv
+    write.table(
+        muestra,
+        file=paste("./", nombre_archivo, ".csv", sep=""),
+        row.names=FALSE,
+        col.names=FALSE,
+        sep=",")
+}
+@
+
+Generamos ahora el csv con muestra de servicios comprados a partir de una lista de posibles productos.
+
+<<>>=
+lista_articulos <- c("Linea movil",
+                     "Linea fija",
+                     "ADSL",
+                     "Fibra",
+                     "Television",
+                     "Peliculas",
+                     "Fútbol")
+
+generar_datos("datos_aleatorios", lista_articulos, 5)
+@
+
+Leemos ahora los datos generados a una tabla y la convertimos en una matriz.
+
+<<>>=
+datos <- scan("datos_aleatorios.csv", sep=",")
+
+matriz_datos <- Matrix(
+    datos,
+    ncol=length(lista_articulos),
+    nrow=5,
+    byrow=T,
+    sparse=T,
+    dimnames=list(c(1:5), lista_articulos))
+
+print(matriz_datos)
+@
+
+Podemos ver por tanto la matriz generada.
+Convirtiendo la matriz a una matrix dispersa, podemos ya
+aplicar el algoritmo apriori sobre la muestra, con $s \geq 60\%$ y $c \geq 80\%$.
+
+<<>>=
+asociaciones <- apriori(
+    as(t(as(matriz_datos,"nsparseMatrix")), "transactions"),
+    parameter=list(support=0.6,confidence=0.8))
+
+inspect(asociaciones)
+@
+
+Obtenemos finalmente asociaciones entre nuestros servicios.
+
+\end{document}

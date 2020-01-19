@@ -1,0 +1,5 @@
+ R D
+Mercurio 2.4 5.4
+Venus 6.1 5.2
+Tierra 6.4 5.5
+Marte 3.4 3.9

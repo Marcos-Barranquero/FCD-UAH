@@ -1,0 +1,414 @@
+\documentclass[a4paper]{article}
+
+\usepackage[latin1]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{kpfonts}
+\usepackage{multicol}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage[usenames]{color}
+\usepackage[latin1]{inputenc}
+\usepackage{todonotes}
+
+\title{PECL1 - Fundamentos de la ciencia de datos}
+\author{Marcos Barranquero \and Adrián Montesinos \and Eduardo Graván}
+\usepackage{Sweave}
+\begin{document}
+\SweaveOpts{concordance=TRUE, cache=TRUE}
+
+\maketitle
+
+\section{Apartado 1 - Ejercicios sobre los datos}
+
+\subsection{Introducción}
+En el siguiente documento presentamos los resultados de la Práctica 1 de FCD. En ella, se han realizado un estudio estadístico
+sobre una variable de un conjunto de variables recogidas en un archivo. Para cada ejercicio, se pide realizar:
+
+\begin{enumerate}
+\item Frecuencias
+\item Media aritmética
+\item Varianza
+\item Desviación típica
+\item Rango
+\item Mediana
+\item Cuartiles
+\item Cuantil 54
+\end {enumerate}
+
+
+Aunque tenemos dos ejercicios claramente diferenciados, ambos estudios se han realizado en el mismo archivo de código R, por lo 
+que comparten la misma estructura inicial:
+
+<<>>==
+
+# Cargamos las librerias:
+source("./Auxiliar/libreria.r")  # Libreria con algunas funciones
+library(foreign)  # Libreria foreign
+library(xtable)
+@
+
+Además de establecer el directorio de trabajo - cosa que no se puede hacer desde el 
+Code Chunk - cargamos la librería \textit{foreign} y las diferentes funciones de la librería creada en clase \textit{libreria}:
+
+\begin{verbatim}
+rango <-
+function(vector)(max(vector)-min(vector))
+
+frecuencia_absoluta <-
+function(vector)(table(" "=vector))
+
+frecuencia_absoluta_acumulada <-
+function(vector)(cumsum(frecuencia_absoluta(vector)))
+
+frecuencia_relativa <-
+function(vector)(round(frecuencia_absoluta(vector)/length(vector), 4))
+
+frecuencia_relativa_acumulada <-
+function(vector)(round(frecuencia_absoluta_acumulada(vector)/length(vector), 4))
+
+\end{verbatim}
+
+\section{Ejercicio 1}
+
+
+En este ejercicio se estudia el \textbf{radio} de los distintos satélites del planeta Urano. Utilizamos un archivo \textit{txt} del que cargamos los datos
+y extraemos la variable. 
+
+<<>>==
+
+# Se importa el archivo y se almacena en una variable
+satelites <- read.table("./Datos/satelites.txt")
+# Sacamos la variable con la que queremos trabajar de la tabla:
+radio <- satelites$radio
+# Observamos el vector de datos:
+radio
+@
+
+Una vez con el vector de radios extraido en la variable \textit{radio}, procedemos a hacer las diferentes operaciones solicitadas:
+
+
+\subsection{Frecuencias}
+Utilizamos las funciones de frecuencia creadas en la libreria \textit{libreria} que realizamos en clase. 
+<<echo=true>>==
+# Frecuencias absolutas:
+frecuencia_absoluta(radio)
+frecuencia_absoluta_acumulada(radio)
+# Frecuencias relativas:
+frecuencia_relativa(radio)
+frecuencia_relativa_acumulada(radio)
+@
+Utilizando la librería xtable, podemos disponer la información de forma más visual y adaptada:
+
+
+\subsubsection{Frecuencia absoluta}
+<<echo=false, results=hide>>= 
+tabla_frecuencia_absoluta <- xtable(frecuencia_absoluta(radio))
+colnames(tabla_frecuencia_absoluta) = c("Elemento|Apariciones")
+@
+
+
+<<echo=false, results=tex>>= 
+print(tabla_frecuencia_absoluta, include.colnames=TRUE)
+@
+
+\subsubsection{Frecuencia absoluta acum.}
+
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{rr}
+  \hline
+Elem. & Apariciones acum.\\ 
+  \hline
+13 &   1 \\
+  15 &   2 \\ 
+  16 &   3 \\
+  20 &   5 \\ 
+  22 &   6 \\
+  27 &   7 \\
+  30 &   8 \\
+  33 &   9 \\
+  34 &   10 \\ 
+  39 &   11 \\
+  42 &   12 \\
+   \hline
+\end{tabular}
+\end{table}
+
+\newpage
+
+\subsubsection{Frecuencia relativa}
+<<echo=false, results=hide>>= 
+tabla_frecuencia_relativa <- xtable(frecuencia_relativa(radio))
+colnames(tabla_frecuencia_relativa) = c("Elemento|Apariciones rel.")
+@
+
+
+<<echo=false, results=tex>>= 
+print(tabla_frecuencia_relativa, include.colnames=TRUE)
+@
+
+\subsubsection{Frecuencia relativa acum.}
+
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{rr}
+  \hline
+Elem. & Apariciones relativas acum.\\ 
+  \hline
+13 &     0.0833 \\
+  15 &   0.1667 \\ 
+  16 &   0.2500 \\
+  20 &   0.4167 \\ 
+  22 &   0.5000 \\
+  27 &   0.5833 \\
+  30 &   0.6667 \\
+  33 &   0.7500 \\
+  34 &   0.8333 \\ 
+  39 &   0.9167 \\
+  42 &   1.0000 \\
+   \hline
+\end{tabular}
+\end{table}
+
+
+\subsection{Media Aritmética}
+Contamos con la función integrada de R que permite calcular la media aritmética sobre un vector, aproximando a 2 decimales. 
+<<>>==
+round(mean(radio), 2)
+@
+
+
+\subsection{Varianza}
+Contamos con la función integrada de R que permite calcular la varianza sobre un vector, aproximando a 2 decimales. 
+<<>>==
+round(var(radio), 2)
+@
+
+\subsection{Desviación típica}
+Contamos con la función integrada de R que permite hacer la desviación típica sobre un vector, aproximando a 2 decimales. 
+<<>>==
+round(sd(radio), 2)
+@
+
+\subsection{Rango}
+Llamamos a la función \textit{rango} definida en la librería \textit{libreria}.
+<<>>==
+rango(radio)
+@
+
+\subsection{Mediana}
+Contamos con la función integrada de R que permite calcular la media sobre un vector. 
+<<>>==
+median(radio)
+@
+
+\subsection{Cuartiles}
+Contamos con la función integrada de R que permite calcular el cuantil especificado sobre un vector. 
+<<>>==
+# Cuartil 1
+quantile(radio, 0.25)
+# Cuartil 2
+quantile(radio, 0.50)
+# Cuartil 3
+quantile(radio, 0.75)
+# Cuartil 4
+quantile(radio, 1.00)
+@
+\subsection{Cuantil 54}
+<<>>==
+quantile(radio, 0.54)
+@
+
+\section{Ejercicio 2}
+
+
+En este ejercicio se estudia la variable \textbf{mpg} de un archivo \textit{spss} que contiene datos relativos a coches. 
+En primer lugar volvemos a extraer la variable del archivo:
+
+<<>>==
+# Se importa el archivo y se almacena en una variable:
+automoviles <- read.spss("./Datos/cardata.sav")
+# Sacamos la variable con la que queremos trabajar de la tabla:
+mpg <- automoviles$mpg
+# Eliminamos los valores NA
+mpg <- mpg[!is.na(mpg)]
+# Observamos el vector de datos
+mpg
+@
+
+\subsection{Frecuencias}
+
+Aunque en el script de R se han calculado las frecuencias, se ha decidido no incluirlas en el documento ya que son tablas de gran tamaño
+que realmente no aportan información extra. 
+
+El código que calcula dichas frecuencias es el siguiente:
+
+\begin{verbatim}
+# Frecuencias absolutas:
+frecuencia_absoluta(mpg)
+frecuencia_absoluta_acumulada(mpg)
+# Frecuencias relativas:
+frecuencia_relativa(mpg)
+frecuencia_relativa_acumulada(mpg)
+\end{verbatim}
+
+
+\subsection{Media Aritmética}
+Contamos con la función integrada de R que permite calcular la media aritmética sobre un vector, aproximando a 2 decimales. 
+<<>>==
+round(mean(mpg), 2)
+@
+
+
+\subsection{Varianza}
+Contamos con la función integrada de R que permite calcular la varianza sobre un vector, aproximando a 2 decimales. 
+<<>>==
+round(var(mpg), 2)
+@
+
+\subsection{Desviación típica}
+Contamos con la función integrada de R que permite hacer la desviación típica sobre un vector, aproximando a 2 decimales. 
+<<>>==
+round(sd(mpg), 2)
+@
+
+\subsection{Rango}
+Llamamos a la función \textit{rango} definida en la librería \textit{libreria}.
+<<>>==
+rango(mpg)
+@
+
+\subsection{Mediana}
+Contamos con la función integrada de R que permite calcular la media sobre un vector. 
+<<>>==
+median(mpg)
+@
+
+\subsection{Cuartiles}
+Contamos con la función integrada de R que permite calcular el cuantil especificado sobre un vector. 
+<<>>==
+# Cuartil 1
+quantile(mpg, 0.25)
+# Cuartil 2
+quantile(mpg, 0.50)
+# Cuartil 3
+quantile(mpg, 0.75)
+# Cuartil 4
+quantile(mpg, 1.00)
+@
+\subsection{Cuantil 54}
+<<>>==
+quantile(mpg, 0.54)
+@
+
+\section{Apartado 2 - Ampliación de ejercicio}
+
+En este apartado se propone ampliar los ejercicios propuestos, introduciendo modificaciones y haciendo uso de otras funciones y librerías.
+Se han instalado los paquetes de \textit{xlsx} y \textit{pastecs} mediante el siguiente comando: 
+
+\begin{verbatim}
+install.packages("pastecs")
+install.packages("xlsx")
+\end{verbatim}
+
+Después, se han vertido los datos en un archivo Excel (Figura 1):
+
+\begin{figure}
+  \centering
+  \includegraphics[width=200px,keepaspectratio]{./datos/captura_excel.png}
+  \caption{Datos en el archivo Excel}
+  \label{fig:excel}
+\end{figure}
+
+
+Tras esto, se ha procedido a leer los datos:
+
+<<>>==
+library(xlsx)
+satelites <- read.xlsx("./Datos/satelites.xlsx", 1)
+radio <- satelites$radio
+@
+
+\subsection{Uso de data, frame, y table}
+
+
+Una vez leídos, se ha utilizado \textit{table()} para calcular las frecuencias absolutas y \textit{prop.table()} para el cálculo de las frecuencias
+relativas. Usamos \textit{data.frame()} para manipular las tablas usando nombres de columna y para mostrarlo en una sola tabla con nombres.
+
+<<>>==
+# Calculamos frecuencias
+frecAbs <- data.frame(table(radio))
+frecAbsAcum <- cumsum(frecAbs["Freq"])
+frecRel <- prop.table(frecAbs["Freq"])
+frecRelAcum <- cumsum(frecRel["Freq"])
+
+# Utilizamos data.frame() para unirlo todo en una tabla.
+frecuencias <- data.frame(
+    frecAbs["radio"],
+    frecAbs["Freq"],
+    frecAbsAcum["Freq"],
+    frecRel["Freq"],
+    frecRelAcum["Freq"]
+)
+
+# Asignamos nombres:
+names(frecuencias) <- c("Radio", "Absoluta", "Abs. acumulada",
+                        "Relativa", "Rel. acumulada")
+
+# Imprimimos tabla:
+frecuencias
+@
+
+
+
+\subsection{Uso de pastecs}
+
+Alternativamente, empleamos el paquete \textit{pastecs} para el cálculo de la media, mediana, mínimo, máximo y medidas de dispersión.
+
+
+<<>>==
+
+# Cargamos la librería
+library(pastecs)
+
+# cargamos funciones sobre la tabla
+dispersion <- stat.desc(radio)[c("mean", "var", "std.dev", "range",
+                                 "min", "max", "median")]
+
+# Establecemos nombres para la tabla 
+names(dispersion) <- c("Media", "Varianza", "Desv. tipica", "Rango",
+                       "Minimo", "Maximo", "Mediana")
+
+# Mostramos por pantalla
+dispersion
+
+@
+
+Finalmente empleamos summary para generar máximo, mínimo, cuartiles y media ordenador según aparecen. 
+Añadimos el cuantil 54% a su posición correspondiente. 
+
+<<>>==
+
+cuantil54 <- quantile(radio, 0.54)
+cuantiles <- c(summary(radio), cuantil54)
+cuantiles <- cuantiles[order(unlist(cuantiles))] # Ordenamos el cuantil 54%
+print(cuantiles)
+@
+
+\section{Conclusiones}
+
+Mediante esta práctica nos hemos familiarizado con el uso del lenguaje de programación de R, así como su IDE \textit{Rgui, Rstudio} y el 
+empleo de \textit{Latex} para la producción de documentos científicos relacionados con el estudio de datos, empleando la herramienta
+\textit{Sweavy}.
+
+Vemos que es un lenguaje potente, que en pocos segundos es capaz de analizar grandes cantidades de datos y con un gran soporte de la comunidad
+a la hora de crear nuevos paquetes, algoritmos y funcionalidades.
+
+
+\end{document}

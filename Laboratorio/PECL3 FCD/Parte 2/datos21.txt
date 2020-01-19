@@ -1,0 +1,11 @@
+ TipoCarnet NumRuedas NumPasajeros TipoVehiculo
+suceso1 B 4 5 Coche
+suceso2 A 2 2 Moto
+suceso3 N 2 1 Bicicleta
+suceso4 B 6 4 Camion
+suceso5 B 4 5 Coche
+suceso6 B 4 4 Coche
+suceso7 N 2 2 Bicicleta
+suceso8 B 2 1 Moto
+suceso9 B 6 2 Camion
+suceso10 N 2 1 Bicicleta

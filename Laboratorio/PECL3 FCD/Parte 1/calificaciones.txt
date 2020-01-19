@@ -1,0 +1,10 @@
+ Teoria Lab Pract Calificacion
+suceso1 A A B Ap
+suceso2 A B D Ss
+suceso3 D D C Ss
+suceso4 D D A Ss
+suceso5 B C B Ss
+suceso6 C B B Ap
+suceso7 B B A Ap
+suceso8 C D C Ss
+suceso9 B A C Ss
